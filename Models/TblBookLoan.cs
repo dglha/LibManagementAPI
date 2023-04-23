@@ -14,6 +14,8 @@ public partial class TblBookLoan
 
     public string BookLoansDueDate { get; set; } = null!;
 
+    public byte BookLoansStatus { get; set; }
+
     public virtual TblBook BookLoansBook { get; set; } = null!;
 
     public virtual TblLibraryBranch BookLoansBranch { get; set; } = null!;

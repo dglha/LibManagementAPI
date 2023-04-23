@@ -1,7 +1,6 @@
 ﻿using LibManagementAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -26,7 +25,7 @@ namespace LibManagementAPI.Controllers
         // POST: api/TblUsers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("Login")]
-        public async Task<ActionResult<TblUser>> PostTblUserLogin(TblUserDTO tblUserDTO)
+        public async Task<IActionResult> PostTblUserLogin(TblUserDTO tblUserDTO)
         {
             if (_context.TblUsers == null)
             {
@@ -65,7 +64,28 @@ namespace LibManagementAPI.Controllers
                 claims,
                 expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: signIn);
+            //var serverPort = 7116;
+            //switch (int.Parse(tblUserLogin.UserRole))
+            //{
+            //    case 1:
+            //        serverPort = 7117;
+            //        break;
+            //    case 2:
+            //        serverPort = 7118;
+            //        break;
+            //    case 3:
+            //        serverPort = 7116;
+            //        break;
+            //};
+
+            //var result = new
+            //{
+            //    Token = new JwtSecurityTokenHandler().WriteToken(token),
+            //    Port = serverPort
+            //};
+            //return Ok(result);
             return Ok(new JwtSecurityTokenHandler().WriteToken(token));
+
         }
         private bool TblUserExists(int id)
         {

@@ -136,6 +136,7 @@ public partial class LibraryContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("book_loans_DueDate");
+            entity.Property(e => e.BookLoansStatus).HasColumnName("book_loans_Status");
 
             entity.HasOne(d => d.BookLoansBook).WithMany(p => p.TblBookLoans)
                 .HasForeignKey(d => d.BookLoansBookId)

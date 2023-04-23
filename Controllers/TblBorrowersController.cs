@@ -2,6 +2,7 @@
 using LibManagementAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -169,7 +170,20 @@ namespace LibManagementAPI.Controllers
             {
                 return NotFound();
             }
-            var tblBorrower = await _context.TblBorrowers.FindAsync(id);
+
+            var check = await CheckRole();
+
+            if (!check)
+            {
+                return BadRequest("User has no access to this Library!");
+            }
+
+            var userRole = GetRole();
+            if (userRole != 3)
+            {
+                return BadRequest("User has no permission to delele borrower in Library!");
+            }
+            var tblBorrower = await _context.TblBorrowers.Include(x => x.TblBookLoans).Where(x=> x.BorrowerCardNo == id).FirstOrDefaultAsync();
             if (tblBorrower == null)
             {
                 return NotFound();
@@ -235,25 +249,35 @@ namespace LibManagementAPI.Controllers
         // POST : api/TblBorrower/5/Return
         [Authorize]
         [HttpPost("{id}/Return/{loanId}")]
-        public async Task<ActionResult<TblBookLoan>> PostTblBorrowerReturnLoan(int id, int loanId,TblBookLoanDTO loan)
+        public async Task<ActionResult<TblBookLoan>> PostTblBorrowerReturnLoan(int id, int loanId)
         {
             if (!TblBorrowerExists(id))
             {
                 return BadRequest();
             }
 
-            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loan.BookLoansBookId).FirstOrDefaultAsync();
+            var loanObj = await _context.TblBookLoans.Where(x => x.BookLoansCardNo == id && x.BookLoansLoansId == loanId).FirstOrDefaultAsync();
+            if (loanObj == null)
+            {
+                return BadRequest("Loan does not exists!");
+            }
+
+            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loanObj.BookLoansBookId).FirstOrDefaultAsync();
             if (bookCopies == null)
             {
                 return BadRequest("Book does not exists!");
             }
 
+
             bookCopies.BookCopiesNoOfCopies++;
             _context.Entry(bookCopies).State = EntityState.Modified;
 
+            loanObj.BookLoansStatus = 1;
+            _context.Entry(loanObj).State = EntityState.Modified;
+
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return Ok("Loan return!");
 
         }
 
@@ -274,7 +298,6 @@ namespace LibManagementAPI.Controllers
                 .ToListAsync();
 
             return loans;
-
         }
 
         private bool TblBorrowerExists(int id)
@@ -305,6 +328,7 @@ namespace LibManagementAPI.Controllers
             },
             BookLoansDateOut = item.BookLoansDateOut,
             BookLoansDueDate = item.BookLoansDueDate,
+            BookLoansStatus = item.BookLoansStatus,
         };
 
         private async Task<bool> CheckRole()

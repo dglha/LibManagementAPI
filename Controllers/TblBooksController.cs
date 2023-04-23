@@ -111,6 +111,7 @@ namespace LibManagementAPI.Controllers
             }
 
             var check = await CheckRole();
+            var userRole = GetRole();
 
             if (!check)
             {
@@ -121,6 +122,33 @@ namespace LibManagementAPI.Controllers
 
             item.BookTitle = tblBookDTO.BookTitle;
             item.BookPublisherName = tblBookDTO.BookPublisherName;
+
+            foreach (var b in tblBookDTO.TblBookCopies)
+            {
+                var i = _context.TblBookCopies.Where(x => x.BookCopiesBookId == item.BookBookId).FirstOrDefault();
+                if (i == null)
+                {
+                    if (b.BookCopiesBranchId != userRole)
+                    {
+                        continue;
+                    }
+                    var copy = new TblBookCopy
+                    {
+                        BookCopiesBookId = id,
+                        BookCopiesBranchId = b.BookCopiesBranchId,
+                        BookCopiesNoOfCopies = b.BookCopiesNoOfCopies,
+                    };
+                    _context.TblBookCopies.Add(copy);
+                    continue;
+                }
+                
+                if (i.BookCopiesBranchId != userRole)
+                {
+                    continue ;
+                }
+                i.BookCopiesNoOfCopies = b.BookCopiesNoOfCopies;
+                _context.Entry(i).State  = EntityState.Modified;
+            }
 
             _context.Entry(item).State = EntityState.Modified;
 
@@ -140,7 +168,7 @@ namespace LibManagementAPI.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok("Book updated!");
         }
 
         // POST: api/TblBooks
@@ -204,7 +232,7 @@ namespace LibManagementAPI.Controllers
             _context.TblBookCopies.Remove(tblBookCopy);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Book copy deleted!");
         }
 
         // Add copy to book
@@ -264,7 +292,7 @@ namespace LibManagementAPI.Controllers
 
         }
 
-        // Book's Authors
+        // Book's 
 
 
         private bool TblBookExists(int id)
@@ -288,10 +316,11 @@ namespace LibManagementAPI.Controllers
             TblBookCopies = (from copy in book.TblBookCopies
                              select new TblBookCopyDTO
                              {
-                                 BookCopiesBranch = new TblLibraryBranchDTO { LibraryBranchBranchName = copy.BookCopiesBranch.LibraryBranchBranchName, LibraryBranchBranchId = copy.BookCopiesBranch.LibraryBranchBranchId},
+                                 BookCopiesBranch = new TblLibraryBranchDTO { LibraryBranchBranchName = copy.BookCopiesBranch.LibraryBranchBranchName, LibraryBranchBranchId = copy.BookCopiesBranch.LibraryBranchBranchId },
                                  BookCopiesBranchId = copy.BookCopiesBranchId,
                                  BookCopiesNoOfCopies = copy.BookCopiesNoOfCopies,
                                  BookCopiesCopiesId = copy.BookCopiesCopiesId,
+                                 BookCopiesBookId = copy.BookCopiesBookId,
                              }
                              ).ToList(),
         };
@@ -310,8 +339,8 @@ namespace LibManagementAPI.Controllers
             var userID = RetrieveInfoHelper.GetUserIdFromJWT(token);
 
             return await RoleHelper.IsAdminOfLibrary(_context, userID);
-            
-        }     
+
+        }
 
         private int? GetRole()
         {

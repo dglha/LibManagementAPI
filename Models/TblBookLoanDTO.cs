@@ -13,6 +13,9 @@
         public string BookLoansDateOut { get; set; } = null!;
 
         public string BookLoansDueDate { get; set; } = null!;
+
+        public int BookLoansStatus { get; set; }
+
         public virtual TblBookDTO? BookLoansBook { get; set; } = null!;
         public virtual TblLibraryBranch? BookLoansBranch { get; set; } = null!;
 
