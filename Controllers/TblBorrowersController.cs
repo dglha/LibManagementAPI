@@ -206,7 +206,7 @@ namespace LibManagementAPI.Controllers
                 return BadRequest("User can not perform action to another Library!");
             }
 
-            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loan.BookLoansBookId).FirstAsync();
+            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loan.BookLoansBookId).FirstOrDefaultAsync();
             if (bookCopies == null || bookCopies.BookCopiesNoOfCopies <= 0)
             {
                 return BadRequest("Book does not exists or out of stock!");
@@ -242,7 +242,7 @@ namespace LibManagementAPI.Controllers
                 return BadRequest();
             }
 
-            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loan.BookLoansBookId).FirstAsync();
+            var bookCopies = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == loan.BookLoansBookId).FirstOrDefaultAsync();
             if (bookCopies == null)
             {
                 return BadRequest("Book does not exists!");

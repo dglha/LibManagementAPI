@@ -195,7 +195,7 @@ namespace LibManagementAPI.Controllers
                 return NotFound();
             }
 
-            var tblBookCopy = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == id).FirstAsync();
+            var tblBookCopy = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == tblBook.BookBookId).FirstOrDefaultAsync();
             if (tblBookCopy == null)
             {
                 return NotFound("Book not found in current lib.");
@@ -232,23 +232,34 @@ namespace LibManagementAPI.Controllers
             }
 
             var checkCopy = await _context.TblBookCopies.Where(x => x.BookCopiesBookId == id && x.BookCopiesBranchId == bookCopyDTO.BookCopiesBranchId).FirstOrDefaultAsync();
-            if (checkCopy != null)
+            if (checkCopy == null)
             {
-                return NotFound();
+                var item = new TblBookCopy
+                {
+                    BookCopiesBookId = id,
+                    BookCopiesBranchId = bookCopyDTO.BookCopiesBranchId,
+                    BookCopiesNoOfCopies = bookCopyDTO.BookCopiesNoOfCopies,
+                };
+
+                _context.TblBookCopies.Add(item);
+                await _context.SaveChangesAsync();
+                return Ok(item);
             }
 
-            var item = new TblBookCopy
-            {
-                BookCopiesBookId = id,
-                BookCopiesBranchId = bookCopyDTO.BookCopiesBranchId,
-                BookCopiesNoOfCopies = bookCopyDTO.BookCopiesNoOfCopies,
-            };
+            checkCopy.BookCopiesNoOfCopies += bookCopyDTO.BookCopiesNoOfCopies;
+            _context.Entry(checkCopy).State = EntityState.Modified;
+            //var item = new TblBookCopy
+            //{
+            //    BookCopiesBookId = id,
+            //    BookCopiesBranchId = bookCopyDTO.BookCopiesBranchId,
+            //    BookCopiesNoOfCopies = bookCopyDTO.BookCopiesNoOfCopies,
+            //};
 
-            _context.TblBookCopies.Add(item);
+            //_context.TblBookCopies.Add(item);
 
             await _context.SaveChangesAsync();
 
-            return Ok(item);
+            return Ok(checkCopy);
 
 
         }

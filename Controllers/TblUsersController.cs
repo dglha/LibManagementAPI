@@ -33,10 +33,10 @@ namespace LibManagementAPI.Controllers
                 return Problem("Entity set 'LibraryContext.TblUsers'  is null.");
             }
 
-            var tblUserLogin = await _context.TblUsers.Where(u => u.UserEmail == tblUserDTO.UserEmail).FirstAsync();
+            var tblUserLogin = await _context.TblUsers.Where(u => u.UserEmail == tblUserDTO.UserEmail).FirstOrDefaultAsync();
             if (tblUserLogin == null)
             {
-                return BadRequest();
+                return BadRequest("Wrong email or password");
             }
 
             var verify = BCrypt.Net.BCrypt.Verify(tblUserDTO.UserPassword, tblUserLogin.UserPassword);
