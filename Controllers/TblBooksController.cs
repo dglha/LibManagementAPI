@@ -64,8 +64,8 @@ namespace LibManagementAPI.Controllers
                 .Include(b => b.TblBookCopies)
                     .ThenInclude(cb => cb.BookCopiesBranch)
                 .Select(x => ItemToFullDTO(x))
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+                //.Skip((pageNumber - 1) * pageSize)
+                //.Take(pageSize)
                 .ToListAsync();
             var response = new
             {

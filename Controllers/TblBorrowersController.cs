@@ -62,8 +62,8 @@ namespace LibManagementAPI.Controllers
             }
 
             var items = await result.Select(x => ItemToDTO(x))
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+                //.Skip((pageNumber - 1) * pageSize)
+                //.Take(pageSize)
                 .ToListAsync();
 
             var response = new
