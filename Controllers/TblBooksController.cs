@@ -125,29 +125,26 @@ namespace LibManagementAPI.Controllers
 
             foreach (var b in tblBookDTO.TblBookCopies)
             {
-                var i = _context.TblBookCopies.Where(x => x.BookCopiesBookId == item.BookBookId).FirstOrDefault();
+                var i = _context.TblBookCopies.Where(x => x.BookCopiesBookId == item.BookBookId && x.BookCopiesBranchId == b.BookCopiesBranchId).FirstOrDefault();
                 if (i == null)
                 {
-                    if (b.BookCopiesBranchId != userRole)
+                    if (b.BookCopiesBranchId == userRole)
                     {
-                        continue;
+                        var copy = new TblBookCopy
+                        {
+                            BookCopiesBookId = id,
+                            BookCopiesBranchId = b.BookCopiesBranchId,
+                            BookCopiesNoOfCopies = b.BookCopiesNoOfCopies,
+                        };
+                        _context.TblBookCopies.Add(copy);
                     }
-                    var copy = new TblBookCopy
-                    {
-                        BookCopiesBookId = id,
-                        BookCopiesBranchId = b.BookCopiesBranchId,
-                        BookCopiesNoOfCopies = b.BookCopiesNoOfCopies,
-                    };
-                    _context.TblBookCopies.Add(copy);
-                    continue;
                 }
-                
-                if (i.BookCopiesBranchId != userRole)
+                else if (i.BookCopiesBranchId == userRole)
                 {
-                    continue ;
+                    i.BookCopiesNoOfCopies = b.BookCopiesNoOfCopies;
+                    _context.Entry(i).State = EntityState.Modified;
                 }
-                i.BookCopiesNoOfCopies = b.BookCopiesNoOfCopies;
-                _context.Entry(i).State  = EntityState.Modified;
+
             }
 
             _context.Entry(item).State = EntityState.Modified;
